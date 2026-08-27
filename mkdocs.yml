@@ -1,0 +1,54 @@
+site_name: podmetrics
+site_description: Messung von Sprachaufnahmen — Konzept und API
+site_url: https://kaijen.github.io/podmetrics/
+repo_url: https://github.com/kaijen/podmetrics
+repo_name: kaijen/podmetrics
+copyright: Kai Jendrian
+
+theme:
+  name: material
+  language: de
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Dunkle Darstellung
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Helle Darstellung
+
+nav:
+  - Start: index.md
+  - Konzept: konzept.md
+  - Zielwerte: zielwerte.md
+  - API:
+      - Funktionen: api/funktionen.md
+      - Datentypen: api/datentypen.md
+      - Empfehlungen: api/empfehlungen.md
+  - CLI: cli.md
+  - Arbeitsweise: arbeitsweise.md
+  - Projektstand: projektstand.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kaijen/podmetrics

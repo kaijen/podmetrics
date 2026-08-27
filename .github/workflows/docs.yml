@@ -1,0 +1,55 @@
+name: Dokumentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Nur eine Veröffentlichung gleichzeitig. Nicht abbrechen: Ein halb
+# hochgeladenes Pages-Artefakt ist schlimmer als eine Minute Wartezeit.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Bauen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+
+      - name: Abhängigkeiten
+        run: pip install -r docs/requirements.txt
+
+      # --strict: ein toter Verweis bricht den Bau, statt still online zu gehen.
+      - name: mkdocs build --strict
+        run: mkdocs build --strict
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Veröffentlichen
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

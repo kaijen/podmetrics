@@ -55,6 +55,8 @@ Alle Modelle sind frozen Dataclasses in `models.py` und tragen `to_dict()` / `fr
 
 `TargetProfile` hält die Ziele, gegen die empfohlen wird: Ziel-LUFS-I, True-Peak-Grenze, Zielspanne für P10–P90, geforderter Rauschabstand, die Obergrenzen für EQ-Vorschläge und die Vorgaben für Attack und Release. Jeder Defaultwert steht im Quelltext mit einer Zeile Begründung. Ein Zielwert ohne Herkunft wird nach drei Monaten nicht mehr hinterfragt, sondern geglaubt.
 
+Es gibt zwei benannte Vorgaben, `TargetProfile.raw()` für die Rohaufnahme pro Spur und `TargetProfile.delivery()` für die fertige Folge. Sie zu verwechseln ist der teuerste Anfängerfehler: Wer roh auf den Veröffentlichungspegel aufnimmt, hat beim ersten Lacher keinen Headroom mehr. Die Vorgabe für `advise()` ist `raw()`, weil der tägliche Fall die Rohaufnahme ist. Die Werte und ihre Herkunft stehen in der Dokumentation unter „Zielwerte".
+
 `Advice` enthält eine Liste von `Suggestion`, das verwendete `TargetProfile`, die Angabe, ob und gegen welche Referenz geraten wurde, den angenommenen Materialzustand und eine `ruleset_version`. Wie bei `Measurement` reisen die Voraussetzungen mit dem Ergebnis, weil eine Empfehlung ohne ihr Ziel nicht nachvollziehbar ist.
 
 `Suggestion` enthält eine stabile `id`, das Thema, einen Schweregrad, den deutschen Text, die auslösenden Messwerte samt Schwelle, die erwartete Wirkung als Messwert, die Rangfolge und — bei EQ und Kompression — die konkreten Parameter als Zahlen.
@@ -78,6 +80,9 @@ src/podmetrics/
   report.py       measure() — setzt die Einzelmodule zusammen
   cli.py
 tests/
+docs/                         mkdocs-Quellen, siehe Abschnitt Dokumentation
+.github/workflows/docs.yml
+mkdocs.yml
 pyproject.toml
 ```
 
@@ -92,6 +97,8 @@ Vor jeder Pegelstatistik und vor allem Spektralen werden Sprechpausen entfernt. 
 True Peak wird 4-fach oversampled per `resample_poly` berechnet. pyloudnorm liefert keinen True Peak, und der Sample-Peak übersieht Intersample-Spitzen.
 
 LUFS-I braucht mindestens 30 Sekunden, sonst greift das BS.1770-Gating unzuverlässig. Kürzeres Material wird gemessen, aber im Ergebnis als unzuverlässig markiert — nicht stillschweigend geliefert und nicht verweigert.
+
+Jeder LUFS-Wert dieser Bibliothek ist ein Mono-Wert, weil beim Laden auf einen Kanal reduziert wird. BS.1770 summiert Kanalenergien; dasselbe Signal auf zwei Kanälen misst rund 3 dB lauter. Der Zielwert für eine fertige Folge lautet hier deshalb −19 LUFS und nicht die verbreiteten −16 LUFS, die sich auf Stereo beziehen. Diese Umrechnung wird nirgends stillschweigend vorgenommen — sie steht in der Dokumentation und in der Begründung des Zielwerts, weil ein automatisch dazugerechnetes Offset genau der Fehler wäre, den niemand später findet.
 
 Der Rauschteppich wird ausschließlich in einem explizit übergebenen Bereich gemessen. Ohne `noise_region` bleibt das Feld `None`. Die Bibliothek sucht sich keine Pause selbst; welcher Abschnitt eine echte Sprechpause ist, weiß nur der Nutzer.
 
@@ -216,6 +223,14 @@ SemVer für das Paket. `Measurement.schema_version` wird getrennt geführt und e
 `Advice.ruleset_version` wird getrennt geführt und erhöht, sobald sich Regeln, Schwellen oder die Bedeutung einer Suggestion-ID ändern. Eine ID wird nie wiederverwendet: Verschwindet eine Regel, bleibt ihre ID verbraucht, damit alte gespeicherte Empfehlungen nicht plötzlich etwas anderes bedeuten.
 
 Geänderte Defaults in `TargetProfile` sind keine Breaking Changes — alte Messungen bleiben gültig —, aber sie ändern Empfehlungen ohne sichtbaren Anlass und gehören deshalb mit Begründung ins Changelog.
+
+## Dokumentation
+
+Konzept, API-Entwurf, Zielwerte und Arbeitsweise stehen als mkdocs-Seiten in `docs/` und werden bei jedem Push auf `main` nach GitHub Pages veröffentlicht. Der Bau läuft mit `mkdocs build --strict`, auch auf Pull Requests: Ein toter Verweis bricht den Bau, statt still online zu gehen.
+
+CLAUDE.md und die Dokumentation überschneiden sich absichtlich, aber sie haben verschiedene Leser. Hier stehen Entscheidungen und ihre Begründung für den, der am Paket arbeitet. Dort steht, wie man es benutzt. Ändert sich eine Festlegung, wird sie an beiden Stellen nachgezogen — eine Dokumentationsseite, die einer Regel hier widerspricht, ist ein Fehler und kein zweiter Standpunkt.
+
+Die Dokumentationsabhängigkeiten stehen in `docs/requirements.txt` und nicht in `pyproject.toml`. Wer podmetrics benutzt, soll dafür keinen Dokumentationsgenerator installieren müssen.
 
 ## Tests
 
