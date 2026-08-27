@@ -69,7 +69,10 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 known-first-party = ["podmetrics", "helpers"]
 
 [tool.mypy]
-python_version = "3.11"
+# Kein python_version: mypy prüft gegen den Interpreter, unter dem es läuft.
+# Festgenagelt auf 3.11 scheitert es auf den 3.12- und 3.13-Läufen beim Parsen
+# der numpy-Stubs, die type-Statements aus 3.12 benutzen — und genau das
+# Prüfen der neueren Versionen ist der Zweck der Matrix.
 packages = ["podmetrics"]
 strict = true
 # scipy und pyloudnorm liefern keine Typinformationen mit.

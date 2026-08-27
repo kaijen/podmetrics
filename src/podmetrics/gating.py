@@ -28,8 +28,8 @@ def rms_envelope(signal: Signal, params: AnalysisParams) -> tuple[np.ndarray, np
     hop = max(1, round(window * (1.0 - params.rms_overlap)))
     samples = signal.samples
     if len(samples) < window:
-        rms = float(np.sqrt(np.mean(samples**2))) if len(samples) else 0.0
-        return np.array([0.0]), to_db(rms).reshape(1)
+        single = float(np.sqrt(np.mean(samples**2))) if len(samples) else 0.0
+        return np.array([0.0]), to_db(single).reshape(1)
 
     starts = np.arange(0, len(samples) - window + 1, hop)
     frames = np.lib.stride_tricks.sliding_window_view(samples, window)[starts]
