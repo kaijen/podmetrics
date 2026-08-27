@@ -1,0 +1,9 @@
+# Abhängigkeiten der Dokumentation. Bewusst getrennt von den Paket-
+# Abhängigkeiten in pyproject.toml: Wer podmetrics benutzt, soll dafür
+# keinen Dokumentationsgenerator installieren müssen.
+
+# mkdocs auf <2 festgenagelt. MkDocs 2.0 bricht Plugins und Theme-Overrides
+# ohne Migrationspfad; ein unbeaufsichtigter Build auf main soll daran nicht
+# eines Morgens scheitern.
+mkdocs>=1.6,<2
+mkdocs-material>=9.7,<10
