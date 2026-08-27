@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "podmetrics"
+version = "0.1.0"
+description = "Messung von Sprachaufnahmen: Pegel, Lautheit, Spektrum — und Empfehlungen daraus"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+authors = [{ name = "Kai Jendrian", email = "kai@jendrian.de" }]
+keywords = ["audio", "podcast", "loudness", "lufs", "speech", "measurement"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "soundfile>=0.12",
+    "pyloudnorm>=0.1.1",
+]
+
+[project.optional-dependencies]
+# Terminal-Ballast bleibt optional, damit die Webapp die Bibliothek ohne
+# typer und rich installieren kann.
+cli = ["typer>=0.12", "rich>=13.0"]
+
+[project.scripts]
+podmetrics = "podmetrics.cli:app"
+
+[project.urls]
+Documentation = "https://kaijen.github.io/podmetrics/"
+Source = "https://github.com/kaijen/podmetrics"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.11"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/podmetrics"]
+
+# Was in ein Quellarchiv gehört: das Paket und seine Tests. Nicht die
+# Dokumentation, nicht previous_dialog und vor allem keine virtuelle Umgebung,
+# die zufällig im Projektverzeichnis liegt.
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/README.md", "/pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 96
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# Die Texte hier sind deutsch und typografisch gesetzt: echtes Minus (U+2212)
+# in Pegelangaben, „…“ als Anführungszeichen. Das ist Absicht — dB-Werte mit
+# Bindestrich statt Minuszeichen zu schreiben wäre in einer Messausgabe
+# schlechter lesbar, nicht besser.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["podmetrics", "helpers"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["podmetrics"]
+strict = true
+# scipy und pyloudnorm liefern keine Typinformationen mit.
+[[tool.mypy.overrides]]
+module = ["scipy.*", "pyloudnorm.*", "soundfile.*"]
+ignore_missing_imports = true

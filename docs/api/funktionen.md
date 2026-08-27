@@ -1,9 +1,9 @@
 # Funktionen
 
-!!! warning "Entwurf"
+!!! note "Stand 0.1.0"
 
-    Diese Signaturen sind ein Vorschlag und noch nicht implementiert. Solange keine
-    Version 1.0 veröffentlicht ist, können sie sich ändern.
+    Diese Signaturen sind implementiert. Solange keine Version 1.0 veröffentlicht ist,
+    können sie sich noch ändern; jede Änderung steht dann im Changelog.
 
 Alles, was auf dieser Seite steht, ist der Vertrag. Alles darunter ist privat und darf
 ohne Versionssprung geändert werden. Neue Funktionen kommen erst in den Namensraum, wenn
@@ -109,7 +109,7 @@ def advise(
     measurement: Measurement,
     *,
     reference: Measurement | None = None,
-    profile: TargetProfile = TargetProfile.raw(),
+    profile: TargetProfile | None = None,   # None → TargetProfile.raw()
     topics: tuple[str, ...] = ("position", "eq", "comp"),
     material: str = "raw",
 ) -> Advice
@@ -136,7 +136,7 @@ einzelnen Messung ohne Ziel folgt nichts. Die Regeln stehen unter
 def check_reference(
     measurement: Measurement,
     *,
-    profile: TargetProfile = TargetProfile.raw(),
+    profile: TargetProfile | None = None,   # None → TargetProfile.raw()
     against: Measurement | None = None,
 ) -> ReferenceCheck
 ```

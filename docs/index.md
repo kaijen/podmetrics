@@ -8,11 +8,17 @@ Auf Wunsch leitet sie aus diesen Zahlen Empfehlungen ab: zur Mikrofonposition, z
 EQ- und Kompressoreinstellungen in Ultraschall, und zur Frage, ob eine Aufnahme als
 Referenz taugt.
 
-!!! warning "Entwurf — noch keine Zeile Code"
+!!! info "Version 0.1.0 — die Bibliothek läuft"
 
-    Dieses Repository enthält bisher nur Konzept und Schnittstellenentwurf. Alle hier
-    beschriebenen Funktionen, Datentypen und Befehle sind Absicht, nicht Realität.
-    Was schon steht und was noch nicht, sagt der [Projektstand](projektstand.md).
+    Alle hier beschriebenen Funktionen, Datentypen und Befehle sind implementiert und
+    getestet. Was das Paket kann und was noch offen ist, sagt der
+    [Projektstand](projektstand.md).
+
+    Installation aus dem Quelltext, solange es kein Release auf PyPI gibt:
+
+    ```
+    uv tool install "git+https://github.com/kaijen/podmetrics#egg=podmetrics[cli]"
+    ```
 
 ## Wofür
 

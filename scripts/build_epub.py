@@ -98,9 +98,11 @@ def render(md_path: Path) -> tuple[str, str]:
     # Querverweise zeigen auf .md-Dateien. Die Verzeichnisstruktur bleibt im
     # EPUB erhalten, deshalb genügt der Tausch der Endung — relative Pfade
     # und Anker stimmen dann von allein.
-    html = re.sub(r'(href="(?!https?:)[^"]*?)\.md(#[^"]*)?"',
-                  lambda m: '%s.xhtml%s"' % (m.group(1), m.group(2) or ""),
-                  html)
+    html = re.sub(
+        r'(href="(?!https?:)[^"]*?)\.md(#[^"]*)?"',
+        lambda m: '{}.xhtml{}"'.format(m.group(1), m.group(2) or ""),
+        html,
+    )
     return title, html
 
 
@@ -114,8 +116,7 @@ def collect_images(html: str, page: Path) -> list[tuple[str, Path]]:
         if target.is_file():
             found.append((src, target))
         else:
-            print("  WARNUNG: Bild nicht gefunden: %s (in %s)" % (src, page),
-                  file=sys.stderr)
+            print(f"  WARNUNG: Bild nicht gefunden: {src} (in {page})", file=sys.stderr)
     return found
 
 
@@ -139,17 +140,17 @@ def check_links(rendered: dict[str, str]) -> list[str]:
                 continue
             target, _, anchor = href.partition("#")
             if not target:
-                page = name              # Verweis innerhalb der Seite
+                page = name  # Verweis innerhalb der Seite
             else:
                 if not target.endswith(".xhtml"):
-                    continue             # style.css und Ähnliches
+                    continue  # style.css und Ähnliches
                 page = str((base / target).as_posix())
                 page = str(PurePosixPath(os.path.normpath(page)).as_posix())
                 if page not in rendered:
-                    errors.append("%s: Ziel fehlt: %s" % (name, href))
+                    errors.append(f"{name}: Ziel fehlt: {href}")
                     continue
             if anchor and anchor not in ids[page]:
-                errors.append("%s: Anker fehlt: %s" % (name, href))
+                errors.append(f"{name}: Anker fehlt: {href}")
     return errors
 
 
@@ -167,8 +168,9 @@ def build(out_path: Path) -> None:
     if cfg.get("site_description"):
         book.add_metadata("DC", "description", cfg["site_description"])
 
-    style = epub.EpubItem(uid="style", file_name="style.css",
-                          media_type="text/css", content=CSS)
+    style = epub.EpubItem(
+        uid="style", file_name="style.css", media_type="text/css", content=CSS
+    )
     book.add_item(style)
 
     chapters = []
@@ -178,7 +180,7 @@ def build(out_path: Path) -> None:
     for nav_title, rel in pages:
         md_path = docs_dir / rel
         if not md_path.is_file():
-            raise SystemExit("Seite aus der Navigation fehlt: %s" % md_path)
+            raise SystemExit(f"Seite aus der Navigation fehlt: {md_path}")
 
         title, html = render(md_path)
         title = title or nav_title
@@ -186,24 +188,27 @@ def build(out_path: Path) -> None:
         for src, target in collect_images(html, md_path):
             name = "images/" + target.name
             if name not in embedded:
-                book.add_item(epub.EpubItem(
-                    uid="img_%d" % len(embedded),
-                    file_name=name,
-                    media_type=mimetypes.guess_type(target.name)[0]
-                    or "application/octet-stream",
-                    content=target.read_bytes()))
+                book.add_item(
+                    epub.EpubItem(
+                        uid=f"img_{len(embedded)}",
+                        file_name=name,
+                        media_type=mimetypes.guess_type(target.name)[0]
+                        or "application/octet-stream",
+                        content=target.read_bytes(),
+                    )
+                )
                 embedded.add(name)
             depth = rel.count("/")
-            html = html.replace('src="%s"' % src,
-                                'src="%s%s"' % ("../" * depth, name))
+            html = html.replace(f'src="{src}"', 'src="{}{}"'.format("../" * depth, name))
 
         chapter = epub.EpubHtml(
             title=title,
             file_name=rel[:-3] + ".xhtml",
             lang="de",
         )
-        chapter.content = "<h1>%s</h1>\n%s" % (title, html) \
-            if not html.lstrip().startswith("<h1") else html
+        chapter.content = (
+            f"<h1>{title}</h1>\n{html}" if not html.lstrip().startswith("<h1") else html
+        )
         chapter.add_item(style)
         book.add_item(chapter)
         chapters.append(chapter)
@@ -212,19 +217,18 @@ def build(out_path: Path) -> None:
     errors = check_links(rendered)
     if errors:
         for line in errors:
-            print("  FEHLER: %s" % line, file=sys.stderr)
-        raise SystemExit("EPUB nicht gebaut: %d tote Verweise" % len(errors))
+            print(f"  FEHLER: {line}", file=sys.stderr)
+        raise SystemExit(f"EPUB nicht gebaut: {len(errors)} tote Verweise")
 
     book.toc = tuple(chapters)
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
-    book.spine = ["nav"] + chapters
+    book.spine = ["nav", *chapters]
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     epub.write_epub(str(out_path), book)
-    print("%s — %d Kapitel, %d Bilder, %.1f KB"
-          % (out_path, len(chapters), len(embedded),
-             out_path.stat().st_size / 1024))
+    size_kb = out_path.stat().st_size / 1024
+    print(f"{out_path} — {len(chapters)} Kapitel, {len(embedded)} Bilder, {size_kb:.1f} KB")
 
 
 if __name__ == "__main__":

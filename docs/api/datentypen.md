@@ -1,8 +1,9 @@
 # Datentypen
 
-!!! warning "Entwurf"
+!!! note "Stand 0.1.0"
 
-    Die Feldlisten sind ein Vorschlag und noch nicht implementiert.
+    Die Feldlisten entsprechen dem Code. Weicht eine Zeile hier vom Quelltext ab, ist
+    das ein Fehler in dieser Seite und kein zweiter Standpunkt.
 
 Alle Modelle sind frozen Dataclasses in `models.py` und tragen `to_dict()` und
 `from_dict()`. `models` importiert nichts aus dem eigenen Paket.
@@ -20,7 +21,10 @@ class Signal:
     sample_rate: int
     channel: int             # welcher Kanal der Quelle
     source_channels: int     # wie viele die Quelle hatte
-    duration_s: float
+    source_sha256: str
+
+    @property
+    def duration_s(self) -> float: ...
 ```
 
 `Signal` ist der einzige Typ, der ein numpy-Array enthält, und wird deshalb nicht
@@ -41,6 +45,16 @@ class AnalysisParams:
     lufs_min_duration_s: float = 30.0
     third_octave_low_hz: float = 40.0
     third_octave_high_hz: float = 16000.0
+
+    # Ein Plosiv ist eine Spitze, deren Tieftonanteil weit über dem des
+    # umgebenden Sprachblocks liegt — in der Messreihe 95,6 % gegen 28,7 %.
+    plosive_split_hz: float = 120.0
+    plosive_share_factor: float = 2.0
+    plosive_min_share: float = 0.6
+
+    welch_segment_s: float = 0.093
+    comb_min_depth_db: float = 3.0
+    comb_min_notches: int = 4
 ```
 
 Hält alle Fensterlängen, Schwellen und Bandgrenzen. **Defaults werden nie stillschweigend
@@ -162,7 +176,7 @@ class TargetProfile:
     true_peak_max_dbtp: float
     peak_max_dbfs: float
 
-    p10_p90_max_db: float
+    p10_p90_range_db: tuple[float, float]
     crest_range_db: tuple[float, float]
     snr_min_db: float
     noise_floor_max_dbfs: float
@@ -180,6 +194,12 @@ class TargetProfile:
     comp_attack_ms: float = 8.0
     comp_release_ms: float = 110.0
     comp_knee_db: float = 3.0
+
+    # Schwellen der Empfehlungsregeln, in dB gegen die Referenz.
+    band_low_threshold_db: float = 3.0
+    band_high_threshold_db: float = 3.0
+    band_strong_factor: float = 2.0
+    drift_threshold_db: float = 3.0
 
     @classmethod
     def raw(cls) -> "TargetProfile": ...
@@ -233,13 +253,14 @@ class Suggestion:
 
 @dataclass(frozen=True)
 class Advice:
-    schema_version: int
-    ruleset_version: int
     profile: TargetProfile
     material: str                  # "raw" | "processed"
     had_reference: bool
     suggestions: list[Suggestion]
     skipped: list[str]             # Regeln, die nicht geprüft werden konnten
+    chain_order: list[str]         # Hochpass → EQ → Kompressor → Pegelangleichung
+    schema_version: int
+    ruleset_version: int
 ```
 
 Wie bei `Measurement` reisen die Voraussetzungen mit dem Ergebnis: Eine Empfehlung ohne ihr
@@ -261,3 +282,13 @@ class ReferenceCheck:
 ```
 
 `suitable` heißt „technisch als Maßstab brauchbar", nicht „klingt gut".
+
+## Abgeleitete Werte
+
+`Measurement` trägt zwei Eigenschaften, die aus den Feldern folgen und deshalb nicht
+gespeichert werden:
+
+```python
+measurement.p10_p90_db   # speech_p90_dbfs − speech_p10_dbfs
+measurement.snr_db       # speech_median_dbfs − noise_floor_dbfs, None ohne Rauschbereich
+```

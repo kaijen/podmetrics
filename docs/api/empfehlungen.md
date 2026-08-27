@@ -51,13 +51,21 @@ Der Ton ist „probier das und miss nach", nicht „dein Mikro steht falsch".
 
 ### Stabile IDs
 
-Jede Empfehlung trägt eine ID nach dem Muster `position.proximity_excess`,
-`eq.presence_dip`, `comp.threshold`. Die IDs sind Teil des Vertrags wie die
-Funktionsnamen: Die Webapp hängt Texte daran, und nur damit lässt sich über Wochen sehen,
-ob dieselbe Empfehlung immer wiederkommt. IDs sind englisch, die ausgegebenen Texte
-deutsch.
+Jede Empfehlung trägt eine ID nach dem Muster `thema.name`. Die IDs sind Teil des
+Vertrags wie die Funktionsnamen: Die Webapp hängt Texte daran, und nur damit lässt sich
+über Wochen sehen, ob dieselbe Empfehlung immer wiederkommt. IDs sind englisch, die
+ausgegebenen Texte deutsch.
+
+Die IDs des aktuellen Regelstands:
+
+| Thema | IDs |
+| --- | --- |
+| `position` | `proximity_excess`, `off_axis`, `sibilance`, `distance_excess`, `drift`, `plosives`, `comb_filter` |
+| `eq` | `highpass`, `band_<frequenz>hz`, `output_gain`, `blocked_by_position` |
+| `comp` | `threshold`, `ratio`, `true_peak`, `noise_lift`, `makeup` |
 
 Eine ID wird nie wiederverwendet. Verschwindet eine Regel, bleibt ihre ID verbraucht.
+Ein Test prüft, dass alle IDs eines Aufrufs eindeutig sind und dem Muster folgen.
 
 ### Schweregrad statt Ja/Nein
 

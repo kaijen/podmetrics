@@ -80,8 +80,10 @@ src/podmetrics/
   report.py       measure() — setzt die Einzelmodule zusammen
   cli.py
 tests/
+scripts/build_epub.py         EPUB aus den mkdocs-Quellen
 docs/                         mkdocs-Quellen, siehe Abschnitt Dokumentation
-.github/workflows/docs.yml
+.github/workflows/docs.yml    bauen und nach GitHub Pages veröffentlichen
+.github/workflows/tests.yml   ruff, mypy und pytest auf 3.11 bis 3.13
 mkdocs.yml
 pyproject.toml
 ```
@@ -250,6 +252,14 @@ Die Dokumentationsabhängigkeiten stehen in `docs/requirements.txt` und nicht in
 
 Unter `previous_dialog/` liegt das Protokoll der Messreihe, aus der die Zielwerte und die meisten Schwellen stammen. Es ist Quellenmaterial und keine Dokumentationsseite; ausgewertet ist es unter „Messreihen". Wer eine Schwelle ändert, prüft dort, ob sie belegt war. Die Grenze dieser Grundlage gehört mitgenannt: Alle Zahlen stammen aus einer Stimme an einem Mikrofon. Das legt die Richtungen fest, nicht die Schwellen für andere Sprecher — und ist der Grund, warum sie im `TargetProfile` stehen und nicht im Code.
 
+## Werkzeuge
+
+Gebaut wird mit hatchling, src-Layout. Linter und Formatierer ist ruff, Typprüfung mypy im strict-Modus, Tests laufen unter pytest. Alle vier laufen bei jedem Push und jedem Pull Request gegen Python 3.11, 3.12 und 3.13.
+
+Die deutschen Texte im Quelltext sind typografisch gesetzt — echtes Minus in Pegelangaben, „…“ als Anführungszeichen. Die entsprechenden ruff-Regeln RUF001 bis RUF003 sind deshalb ausgeschaltet, mit Begründung in `pyproject.toml`. Ein dB-Wert mit Bindestrich statt Minuszeichen ist in einer Messausgabe schlechter lesbar, nicht besser.
+
+`py.typed` liegt im Paket: Die Webapp soll die Typen sehen, wenn sie sie prüfen will.
+
 ## Tests
 
 Jede Rechenfunktion bekommt mindestens einen Test mit synthetischem Signal, dessen Ergebnis analytisch bekannt ist: Sinus bekannter Amplitude, weißes Rauschen bekannter Leistung, Stille, ein Sinus mit definierter Pause für das Gating.
@@ -262,4 +272,8 @@ Empfehlungsregeln werden nicht aus Audio getestet, sondern aus von Hand konstrui
 
 Ein Test stellt sicher, dass `measure` und `batch` keine Empfehlungen ausgeben. Diese Trennung geht sonst als bequeme Kleinigkeit verloren.
 
-Keine echten Audiodateien im Repository.
+Ein Test prüft, dass `advice` weder numpy noch scipy noch soundfile importiert. Die Schichtung ist eine Festlegung, und eine Festlegung ohne Test ist eine Absichtserklärung.
+
+Der Golden Test wird nach einer beabsichtigten Änderung mit `python tests/test_golden.py` neu erzeugt; der neue Stand gehört in denselben Commit wie die Änderung, die ihn nötig gemacht hat.
+
+Keine echten Audiodateien im Repository. Auch nicht für den Golden Test — sein Signal wird aus einem festen Seed erzeugt.

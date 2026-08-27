@@ -1,86 +1,101 @@
 # Projektstand
 
-Stand: August 2026.
+Version 0.1.0, Stand August 2026.
 
 ## Was existiert
 
-- Konzept, Abgrenzung und Schichtung — festgelegt
-- Entwurf der öffentlichen API — festgelegt, aber noch nicht erprobt
-- Zielwerte für Rohaufnahme und Veröffentlichung — aus einer eigenen Messreihe belegt
-- Das Protokoll dieser Messreihe unter `previous_dialog/`, ausgewertet unter
-  [Messreihen](messreihen.md)
-- Diese Dokumentation
+Die Bibliothek ist implementiert und getestet. Alle Namen, die unter
+[Funktionen](api/funktionen.md) und [Datentypen](api/datentypen.md) stehen, gibt es
+wirklich.
 
-## Was nicht existiert
+| Baustein | Stand |
+| --- | --- |
+| `models` | vollständig, alle Modelle mit `to_dict()` / `from_dict()` |
+| `io` | laden, Kanalwahl, Resampling, Prüfsumme der Quelle |
+| `gating` | gleitendes RMS, Sprachsegmente, Sprachanteil |
+| `levels` | Peak, True Peak, Crest, Perzentile, Clipping, Plosiverkennung |
+| `loudness` | LUFS-I, Short-Term-Verlauf, Blockbalance, `gain_for_target_lufs()` |
+| `spectrum` | Welch-PSD, Terzbänder, Kammfilternachweis |
+| `compare` | Deltas, Differenzkurven, Drift |
+| `advice` | 16 Regeln über drei Themen, Referenzprüfung |
+| `report` | `measure()` als Zusammenbau |
+| `cli` | `measure`, `batch`, `compare`, `advise`, `check-reference` |
 
-**Der Code.** Kein Modul, keine Funktion, kein Test. Jede Signatur auf diesen Seiten ist
-eine Absicht.
+## Installation
 
-## Reihenfolge des Bauens
+Ein Release auf PyPI gibt es noch nicht. Aus dem Quelltext:
 
-Die Empfehlungsschicht ist von allen die einfachste — reine Wenn-Dann-Logik auf Zahlen.
-Sie ist aber wertlos, solange die Kennwerte darunter nicht stimmen. Deshalb von unten nach
-oben:
+```
+uv tool install "git+https://github.com/kaijen/podmetrics#egg=podmetrics[cli]"
+```
 
-1. `models` — die Dataclasses, mit Roundtrip-Tests für `to_dict()` und `from_dict()`
-2. `io` — laden, Kanalwahl, Resampling
-3. `levels` und `gating` — Peak, True Peak, Crest, RMS-Perzentile, Sprachsegmente,
-   Plosiverkennung
-4. `loudness` — LUFS-I, Short-Term, `gain_for_target_lufs()`
-5. `spectrum` — Welch-PSD, Terzbänder
-6. `report.measure()` — der Zusammenbau
-7. CLI `measure`, dann `batch` — ab hier ist das Werkzeug im Alltag benutzbar
-8. `compare` und CLI `compare`
-9. `advice` und CLI `advise`, `check-reference`
+Als Bibliothek, ohne Terminal-Ballast:
 
-Schritt 7 ist der erste, an dem das Paket Nutzen stiftet. Alles davor ist Vorarbeit, alles
-danach ist Komfort.
+```
+uv pip install "git+https://github.com/kaijen/podmetrics"
+```
+
+## Entwicklung
+
+```
+uv venv && . .venv/bin/activate
+uv pip install -e ".[cli]" pytest ruff mypy
+
+pytest              # Tests
+ruff check .        # Linter
+ruff format .       # Formatierung
+mypy                # Typprüfung, strict
+```
+
+Jeder Push und jeder Pull Request lässt alle vier gegen Python 3.11, 3.12 und 3.13
+laufen. Ein roter Lauf blockiert nichts automatisch, aber er ist gemeint.
 
 ## Tests
 
-Jede Rechenfunktion bekommt mindestens einen Test mit synthetischem Signal, dessen Ergebnis
-analytisch bekannt ist: Sinus bekannter Amplitude, weißes Rauschen bekannter Leistung,
-Stille, ein Sinus mit definierter Pause für das Gating.
+89 Tests, alle ohne echte Audiodateien.
+
+Jede Rechenfunktion hat mindestens einen Test mit synthetischem Signal, dessen Ergebnis
+analytisch bekannt ist: Ein Sinus mit Amplitude 0,5 muss −6,02 dBFS Peak und −9,03 dBFS
+RMS ergeben, weißes Rauschen mit σ = 0,1 muss auf −20 dB kommen, halbe Amplitude muss
+genau 6,02 dB weniger LUFS ergeben.
 
 Dazu ein **Golden Test**: ein deterministisch erzeugtes Signal, dessen vollständiges
-`Measurement` als JSON im Repository liegt. Er schlägt fehl, sobald sich ein Rechenweg
-unbeabsichtigt ändert — genau der Fall, der sonst erst Monate später als unerklärliche
-Abweichung auffällt.
+`Measurement` als JSON unter `tests/data/` liegt. Er schlägt fehl, sobald sich ein
+Rechenweg unbeabsichtigt ändert — genau der Fall, der sonst erst Monate später als
+unerklärliche Abweichung auffällt. Nach einer *beabsichtigten* Änderung wird er mit
+`python tests/test_golden.py` neu erzeugt, und der neue Stand gehört in den Commit.
 
-Empfehlungsregeln werden nicht aus Audio getestet, sondern aus von Hand konstruierten
-`Measurement`-Objekten: je Regel eines knapp über der Schwelle, das sie auslöst, und eines
-knapp darunter, das sie nicht auslöst. Das hält die Tests schnell und macht die Schwellen
-im Test sichtbar, statt sie im Code zu verstecken.
+Die **Empfehlungsregeln** werden nicht aus Audio getestet, sondern aus von Hand
+konstruierten `Measurement`-Objekten: je Regel eines knapp über der Schwelle, das sie
+auslöst, und eines knapp darunter, das sie nicht auslöst. Das hält die Tests schnell und
+macht die Schwellen im Test sichtbar, statt sie im Code zu verstecken.
 
-Ein Test stellt sicher, dass `measure` und `batch` keine Empfehlungen ausgeben. Diese
-Trennung geht sonst als bequeme Kleinigkeit verloren.
+Eigene Tests sichern die **Trennung von Messung und Meinung**: dass `Measurement` kein
+Empfehlungsfeld trägt, dass `measure` und `batch` keine Empfehlungsoptionen haben, und
+dass `advice` weder numpy noch scipy noch soundfile importiert. Diese Trennung geht sonst
+als bequeme Kleinigkeit verloren.
 
-Für die Regeln, die aus der Messreihe stammen, ist der Test bereits geschrieben, bevor der
-Code existiert: Die dort protokollierten Werte sind die Fixtures. Ein `Measurement` mit
-Median −21 dBFS muss `comp.threshold` mit −24 vorschlagen; eine Terzband-Differenzkurve mit
-−5,8 dB bei 4–8 kHz und −8,6 dB bei 8–12 kHz muss `position.off_axis` auslösen und nicht
-`position.distance_excess`.
-
-**Keine echten Audiodateien im Repository.** Die WAV-Dateien der Messreihe bleiben
-außerhalb; was von ihnen gebraucht wird, sind die Messwerte, und die stehen im
-Protokoll.
-
-## Offene Entscheidungen
+## Was noch fehlt
 
 | Frage | Stand |
 | --- | --- |
-| Formel für Threshold und Ratio | **geschlossen.** Threshold = Median − 3 dB, Ratio 3:1 als Startwert, belegt durch die [Messreihe](messreihen.md#der-denkfehler-der-die-formel-festlegt) |
-| Kennwert für Plosive | **geschlossen.** Tieftonanteil der Spitze gegen den Blockdurchschnitt |
-| Kammfilter-Nachweis | **festgelegt**, noch nicht erprobt: Periodizität der Einbrüche in der Welch-PSD |
 | Nachhallschätzung | zurückgestellt; unsicher, ob robust genug machbar |
 | Tragen die Schwellen für eine zweite Stimme? | offen — alle Zahlen stammen aus einer Stimme an einem Mikrofon |
+| Kammfilternachweis an echtem Material | offen — belegt ist er bisher nur an synthetischen Signalen mit bekannter Verzögerung |
+| Plosiverkennung an echtem Material | offen — dieselbe Einschränkung |
+| Release auf PyPI | offen |
 | `.RfxChain`-Export für Ultraschall | bewusst nicht — würde REAPER-Versionen ins Paket holen |
+
+Die beiden mittleren Zeilen sind die wichtigsten. Beide Verfahren rechnen an
+synthetischen Signalen richtig, an denen die Antwort vorher feststand. Ob sie an einer
+echten Aufnahme dasselbe leisten — und ob sie normale laute Silben in Ruhe lassen —, ist
+damit noch nicht gezeigt.
 
 ## Diese Dokumentation
 
 Sie wird bei jedem Push auf `main` neu gebaut und nach GitHub Pages veröffentlicht. Der
-Bau läuft mit `mkdocs build --strict`; ein toter Verweis bricht den Bau, statt still online
-zu gehen.
+Bau läuft mit `mkdocs build --strict`; ein toter Verweis bricht den Bau, statt still
+online zu gehen.
 
 Aus denselben Quellen entsteht dabei ein EPUB. Die Kapitelreihenfolge kommt aus der
 Navigation in `mkdocs.yml` — es gibt keine zweite Kapitelliste, die auseinanderlaufen
@@ -91,7 +106,6 @@ schwerer als auf einer Webseite.
 Lokal:
 
 ```
-python -m venv .venv && . .venv/bin/activate
 pip install -r docs/requirements.txt
 mkdocs serve
 

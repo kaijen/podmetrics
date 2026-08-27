@@ -15,8 +15,8 @@ Kein Docker, kein Server, kein Browser.
 podmetrics measure FILE [--noise 12.4:42.4] [--region 11.8:15.0] [--channel 0] [--json]
 podmetrics batch DIR --reference take_002.wav [--region 11.8:15.0] [--csv out.csv]
 podmetrics compare FILE_A FILE_B --reference FILE_A
-podmetrics advise FILE [--reference REF] [--topic position|eq|comp] [--noise 12.4:42.4] [--region 11.8:15.0] [--processed] [--json]
-podmetrics check-reference FILE [--noise 12.4:42.4] [--json]
+podmetrics advise FILE [--reference REF] [--topic position|eq|comp] [--noise 12.4:42.4] [--region 11.8:15.0] [--processed] [--delivery] [--json]
+podmetrics check-reference FILE [--against FILE] [--noise 12.4:42.4] [--json]
 ```
 
 `--region` schränkt die Auswertung auf einen Zeitabschnitt ein und ist für
@@ -80,6 +80,15 @@ $ podmetrics advise take_009.wav --reference referenz.json
 
 `--processed` erklärt das Material als bereits bearbeitet. Positionsempfehlungen entfallen
 dann mit Begründung, statt still falsch zu sein.
+
+`--delivery` rät gegen `TargetProfile.delivery()` statt gegen `raw()` — also gegen die
+Zielwerte der fertigen Folge und nicht der Rohaufnahme. Ohne die Angabe gilt `raw()`, weil
+der tägliche Fall die Rohaufnahme ist.
+
+`check-reference` gibt Exit-Code 0 zurück, wenn die Messung als Maßstab taugt, und 1, wenn
+nicht — damit lässt sich in einem Skript darauf verzweigen. Mit `--against` wird zusätzlich
+geprüft, ob Referenz und Prüfling in Samplerate und Kanalwahl zusammenpassen und ob es
+versehentlich dieselbe Datei ist.
 
 ## Ausgabe
 
