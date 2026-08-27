@@ -82,10 +82,18 @@ Sie wird bei jedem Push auf `main` neu gebaut und nach GitHub Pages veröffentli
 Bau läuft mit `mkdocs build --strict`; ein toter Verweis bricht den Bau, statt still online
 zu gehen.
 
+Aus denselben Quellen entsteht dabei ein EPUB. Die Kapitelreihenfolge kommt aus der
+Navigation in `mkdocs.yml` — es gibt keine zweite Kapitelliste, die auseinanderlaufen
+könnte. Der EPUB-Bau prüft die Querverweise noch einmal für sich und bricht bei einem
+toten Anker ab; in einer Datei, die schon beim Leser liegt, wiegt ein solcher Verweis
+schwerer als auf einer Webseite.
+
 Lokal:
 
 ```
 python -m venv .venv && . .venv/bin/activate
 pip install -r docs/requirements.txt
 mkdocs serve
+
+mkdocs build && python scripts/build_epub.py site/podmetrics.epub
 ```

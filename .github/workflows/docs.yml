@@ -35,6 +35,16 @@ jobs:
       - name: mkdocs build --strict
         run: mkdocs build --strict
 
+      # Nach mkdocs, weil dessen Bau site/ vorher leert. Prüft die
+      # Querverweise noch einmal für sich und bricht bei toten Ankern ab.
+      - name: EPUB bauen
+        run: python scripts/build_epub.py site/podmetrics.epub
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podmetrics-epub
+          path: site/podmetrics.epub
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

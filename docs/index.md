@@ -40,6 +40,13 @@ Repository. Beide sind gleichrangig. Weil die Bibliothek von außen benutzt wird
 | wie eine Aufnahmesitzung praktisch abläuft | [Arbeitsweise](arbeitsweise.md) |
 | woher die Schwellen kommen und was sie belegt | [Messreihen](messreihen.md) |
 
+## Zum Mitnehmen
+
+Die vollständige Dokumentation gibt es auch als E-Book:
+[podmetrics.epub](https://kaijen.github.io/podmetrics/podmetrics.epub). Es wird bei
+jeder Veröffentlichung aus denselben Quellen neu gebaut und ist damit nie älter als
+diese Seite.
+
 ## Beispiel
 
 ```python

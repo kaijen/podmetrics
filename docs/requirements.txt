@@ -7,3 +7,8 @@
 # eines Morgens scheitern.
 mkdocs>=1.6,<2
 mkdocs-material>=9.7,<10
+
+# Nur für scripts/build_epub.py. Rendert wird mit markdown und
+# pymdown-extensions, die mkdocs-material ohnehin mitbringt; ebooklib packt
+# das Ergebnis in einen gültigen EPUB-Container.
+ebooklib>=0.18,<1
