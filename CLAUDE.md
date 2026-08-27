@@ -254,7 +254,9 @@ Unter `previous_dialog/` liegt das Protokoll der Messreihe, aus der die Zielwert
 
 ## Werkzeuge
 
-Gebaut wird mit hatchling, src-Layout. Linter und Formatierer ist ruff, Typprüfung mypy im strict-Modus, Tests laufen unter pytest. Alle vier laufen bei jedem Push und jedem Pull Request gegen Python 3.11, 3.12 und 3.13.
+Gebaut wird mit hatchling, src-Layout. Linter und Formatierer ist ruff, Typprüfung mypy im strict-Modus, Tests laufen unter pytest. Alle vier laufen bei jedem Push und jedem Pull Request gegen Python 3.11 bis 3.14.
+
+Die Untergrenze `requires-python = ">=3.11"` stammt nicht vom eigenen Code, sondern von numpy und scipy — deren aktuelle Fassungen verlangen 3.11. Unter 3.10 laufen Code und Tests durch, aber mit älteren numpy- und scipy-Versionen, und damit möglicherweise mit anderen Zahlen aus denselben Daten. Das ist bei einer Messbibliothek der Einwand, der zählt, und er steht mit dieser Begründung in `pyproject.toml`. Die mypy-Konfiguration nagelt umgekehrt keine Version fest: Sie prüft gegen den Interpreter, unter dem sie läuft, sonst prüft die Matrix nicht, was sie zu prüfen vorgibt.
 
 Die deutschen Texte im Quelltext sind typografisch gesetzt — echtes Minus in Pegelangaben, „…“ als Anführungszeichen. Die entsprechenden ruff-Regeln RUF001 bis RUF003 sind deshalb ausgeschaltet, mit Begründung in `pyproject.toml`. Ein dB-Wert mit Bindestrich statt Minuszeichen ist in einer Messausgabe schlechter lesbar, nicht besser.
 

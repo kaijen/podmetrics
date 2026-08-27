@@ -47,8 +47,13 @@ ruff format .       # Formatierung
 mypy                # Typprüfung, strict
 ```
 
-Jeder Push und jeder Pull Request lässt alle vier gegen Python 3.11, 3.12 und 3.13
-laufen. Ein roter Lauf blockiert nichts automatisch, aber er ist gemeint.
+Jeder Push und jeder Pull Request lässt alle vier gegen Python 3.11 bis 3.14 laufen. Ein
+roter Lauf blockiert nichts automatisch, aber er ist gemeint.
+
+Die Untergrenze 3.11 kommt nicht vom eigenen Code — der läuft nachweislich auch unter
+3.10 —, sondern von numpy und scipy: Deren aktuelle Fassungen verlangen 3.11. Unter 3.10
+bekäme man ältere numpy- und scipy-Versionen untergeschoben und damit womöglich andere
+Zahlen aus denselben Daten. Für eine Messbibliothek ist das der eigentliche Einwand.
 
 ## Tests
 

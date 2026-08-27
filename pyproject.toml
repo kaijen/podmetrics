@@ -7,6 +7,13 @@ name = "podmetrics"
 version = "0.1.0"
 description = "Messung von Sprachaufnahmen: Pegel, Lautheit, Spektrum — und Empfehlungen daraus"
 readme = "README.md"
+# >=3.11 folgt nicht aus dem Code — der läuft nachweislich auch unter 3.10 —,
+# sondern aus numpy und scipy: Deren aktuelle Fassungen verlangen 3.11. Wer
+# podmetrics unter 3.10 installiert, bekommt ältere numpy- und scipy-Versionen
+# untergeschoben, und damit möglicherweise andere Zahlen aus denselben Daten.
+# Für eine Messbibliothek ist das der eigentliche Einwand. Dazu endet die
+# Unterstützung für 3.10 im Oktober 2026, es wäre also eine Zusage auf wenige
+# Wochen.
 requires-python = ">=3.11"
 license = "GPL-3.0-or-later"
 authors = [{ name = "Kai Jendrian", email = "kai@jendrian.de" }]
