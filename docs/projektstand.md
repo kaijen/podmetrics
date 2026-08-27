@@ -57,7 +57,7 @@ Zahlen aus denselben Daten. Für eine Messbibliothek ist das der eigentliche Ein
 
 ## Tests
 
-89 Tests, alle ohne echte Audiodateien.
+Rund 130 Tests, alle ohne echte Audiodateien. Eine genaue Zahl steht hier bewusst nicht — sie wäre bei jedem neuen Test falsch, ohne dass es jemandem auffiele.
 
 Jede Rechenfunktion hat mindestens einen Test mit synthetischem Signal, dessen Ergebnis
 analytisch bekannt ist: Ein Sinus mit Amplitude 0,5 muss −6,02 dBFS Peak und −9,03 dBFS
@@ -79,6 +79,11 @@ Eigene Tests sichern die **Trennung von Messung und Meinung**: dass `Measurement
 Empfehlungsfeld trägt, dass `measure` und `batch` keine Empfehlungsoptionen haben, und
 dass `advice` weder numpy noch scipy noch soundfile importiert. Diese Trennung geht sonst
 als bequeme Kleinigkeit verloren.
+
+Und ein Test prüft **diese Dokumentation gegen den Code**: Feldnamen der Modelle, die
+exportierten Namen, CLI-Befehle und -Optionen, Suggestion-IDs. Weicht eine Seite ab,
+schlägt der Testlauf fehl. Geprüft wird nur Nachweisbares — ob der Fließtext daneben noch
+stimmt, kann kein Test wissen.
 
 ## Was noch fehlt
 

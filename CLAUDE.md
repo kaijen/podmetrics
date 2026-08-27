@@ -83,7 +83,7 @@ tests/
 scripts/build_epub.py         EPUB aus den mkdocs-Quellen
 docs/                         mkdocs-Quellen, siehe Abschnitt Dokumentation
 .github/workflows/docs.yml    bauen und nach GitHub Pages veröffentlichen
-.github/workflows/tests.yml   ruff, mypy und pytest auf 3.11 bis 3.13
+.github/workflows/tests.yml   ruff, mypy und pytest auf 3.11 bis 3.14
 mkdocs.yml
 pyproject.toml
 ```
@@ -275,6 +275,8 @@ Empfehlungsregeln werden nicht aus Audio getestet, sondern aus von Hand konstrui
 Ein Test stellt sicher, dass `measure` und `batch` keine Empfehlungen ausgeben. Diese Trennung geht sonst als bequeme Kleinigkeit verloren.
 
 Ein Test prüft, dass `advice` weder numpy noch scipy noch soundfile importiert. Die Schichtung ist eine Festlegung, und eine Festlegung ohne Test ist eine Absichtserklärung.
+
+Aus demselben Grund prüft ein Test die Dokumentation gegen den Code: Feldnamen der Modelle, die exportierten Namen, CLI-Befehle und -Optionen, Suggestion-IDs. Dass eine Dokumentationsseite einer Festlegung nicht widersprechen darf, steht sonst nur hier und wird beim dritten nachgetragenen Feld vergessen. Geprüft wird nur Nachweisbares — ob der Text daneben stimmt, kann kein Test wissen.
 
 Der Golden Test wird nach einer beabsichtigten Änderung mit `python tests/test_golden.py` neu erzeugt; der neue Stand gehört in denselben Commit wie die Änderung, die ihn nötig gemacht hat.
 
