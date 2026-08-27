@@ -30,6 +30,7 @@ nav:
   - Start: index.md
   - Konzept: konzept.md
   - Zielwerte: zielwerte.md
+  - Messreihen: messreihen.md
   - API:
       - Funktionen: api/funktionen.md
       - Datentypen: api/datentypen.md

@@ -60,6 +60,14 @@ denselben Höreindruck: −19 LUFS mono und −16 LUFS stereo.
 
     Wer die podmetrics-Anzeige gegen −16 prüft, veröffentlicht 3 dB zu laut.
 
+!!! info "Warum im Cheat-Sheet trotzdem −16 steht"
+
+    Der REAPER-Render normalisiert den **Master**, und der ist stereo. Dort ist −16 LUFS
+    richtig. podmetrics misst danach eine **Spur**, und die zeigt für dieselbe Folge rund
+    −19. Beide Zahlen sind korrekt und meinen denselben Höreindruck; sie beziehen sich nur
+    auf verschiedene Signale. Die Messreihe bestätigt das: Version 020 wurde als Spur mit
+    −19,85 LUFS gemessen und als fertig befunden.
+
 !!! warning "Grenze der Messung"
 
     Bei echtem Stereo — gepannte Sprecher, Musikbett nur auf einer Seite — bildet ein
@@ -71,44 +79,70 @@ denselben Höreindruck: −19 LUFS mono und −16 LUFS stereo.
 
 Gemessen mit podmetrics, also einkanalig:
 
-| Kennwert | Ziel | Toleranz |
-| --- | ---: | ---: |
-| LUFS-I | −19 LUFS | ±1 dB |
-| True Peak | ≤ −1 dBTP | — |
-| P10–P90 (nach Kompression) | 6–9 dB | — |
-| Crest (nach Kompression) | 9–12 dB | — |
+| Kennwert | Ziel | Herkunft |
+| --- | ---: | --- |
+| LUFS-I | −19 LUFS ±1 | Apple Podcasts, mono-Bezug; Messreihe v020: −19,85 |
+| True Peak / Limiter beim Rendern | ≤ −1 dBTP | Spezifikation, Reserve gegen Intersample-Peaks |
+| Peak der bearbeiteten Sprachspur | ca. −1,5 dBFS | Messreihe, Endstand |
+| P10–P90 nach Kompression | 14–15,5 dB | Messreihe v020: 15,4 dB |
+| Crest nach Kompression | 10–15 dB | Messreihe |
+| Rauschteppich nach Kompression | **nicht über −48 dB** | Messreihe, siehe unten |
+| Blockbalance | < 1 dB | Messreihe |
 
-Die ersten beiden Zeilen sind Spezifikation. Die letzten beiden sind Faustwerte: Sie
-beschreiben, wie stark die Dynamik nach Kompression üblicherweise eingeengt ist, wenn das
-Ergebnis noch natürlich klingt. Unter 6 dB Spanne wird es gleichförmig und anstrengend.
+Die Zeile zum Rauschteppich ist die wichtigste und die am wenigsten offensichtliche.
+Ein Kompressor unterscheidet nicht zwischen Sprache und allem anderen — er hebt Raum,
+Rauschen und Atem mit an. Steigt der Rauschteppich über −48 dB, war der Eingriff zu
+stark. Das ist ein objektives Kriterium und zuverlässiger als das Gehör, denn stärkere
+Kompression klingt zunächst voller; der Preis fällt erst in den Pausen auf.
+
+In der Messreihe ist genau das passiert: Version 012 landete bei −32,5 dB Rauschteppich
+und war damit unbrauchbar, obwohl die Lautheit stimmte.
 
 ## Zielwerte für die Rohaufnahme
 
 Das ist der Satz Werte, den Du täglich misst — pro Spur, pro Sprecher, direkt aus der
 Aufnahme, ohne EQ und ohne Kompressor.
 
-| Kennwert | Ziel | Warum |
+| Kennwert | Ziel | Herkunft |
 | --- | ---: | --- |
-| Sample-Peak | −12 bis −6 dBFS | Reserve für Plosive und Lacher; 24 Bit hat Rauschreserve im Überfluss, Headroom ist die knappere Ressource |
-| True Peak | ≤ −3 dBTP | Abstand zur Wandlergrenze, der auch Intersample-Spitzen überlebt |
-| LUFS-I | −24 bis −20 LUFS | folgt aus dem Peak-Ziel und einem typischen Sprech-Crest |
-| Rauschabstand | ≥ 50 dB unter dem Median-Sprechpegel | darunter hört man den Raum in den Pausen |
-| Rauschteppich absolut | ≤ −60 dBFS | Kontrolle für die Kette, nicht für die Stimme |
-| Crest | 12–18 dB | unter 12 dB ist etwas schon komprimiert, über 18 dB schwankt der Abstand |
-| P10–P90 | ≤ 12 dB | Maß für gleichmäßige Mikrofontechnik |
+| Sample-Peak der Sprache | −12 bis −6 dBFS | Cheat-Sheet; Headroom ist knapper als Rauschreserve |
+| True Peak | ≤ −3 dBTP | Abstand zur Wandlergrenze, überlebt Intersample-Spitzen |
+| Clipping | 0 Samples | Messreihe v001: 48 Samples nach Mikrofonwechsel |
+| LUFS-I | −24 bis −20 LUFS | Messreihe v010: −20,86 |
+| P10–P90 | 15–19 dB | Messreihe v010: 18,5 dB |
+| Crest | 12–18 dB | Messreihe v010: 18,7 dB |
+| Rauschteppich | −55 dBFS oder besser | Messreihe: −57,5 dB in guten Takes |
+| Rauschabstand (Median − Rauschteppich) | ≥ 35 dB | Messreihe: Median −21, Rauschen −57,5 → 36,5 dB |
 
-!!! note "Herkunft dieser Werte"
+!!! danger "Plosivspitzen sind kein Maßstab für den Gain"
 
-    Die Zeilen zu Peak, True Peak und LUFS-I sind aus dem Zielwert der fertigen Folge
-    zurückgerechnet und in der Praxis unstrittig. Die Zeilen zu Crest, P10–P90 und
-    Rauschabstand sind **Faustwerte**, keine Norm. Sie stehen hier, damit überhaupt ein
-    Bezugspunkt existiert. Sobald Du zwanzig eigene Messungen hast, ersetze sie durch das,
-    was Deine gute Aufnahme tatsächlich zeigt — das ist der bessere Maßstab.
+    Bei P und B trifft ein Luftstoß die Membran. Die Messreihe zeigt, wohin diese Energie
+    geht: bei der Spitze in Version 006 lagen **85,5 %** zwischen 60 und 120 Hz, während
+    im Blockdurchschnitt nur 28,7 % unterhalb von 120 Hz liegen. Ein Hochpass bei 80 Hz
+    senkte dieselbe Spitze von −0,16 auf −2,23 dBFS, ohne dass an der Stimme etwas fehlte.
+
+    Wer den Gain so einstellt, dass auch diese Ausschläge Platz haben, nimmt die Sprache
+    mehrere Dezibel zu leise auf. Maßgeblich ist der Sprechpegel, nicht der Einzelausschlag
+    — deshalb misst podmetrics Plosive getrennt und rechnet sie aus der Peak-Bewertung
+    heraus, statt sie als Übersteuerungswarnung auszugeben.
 
 **Nimm nicht bei −19 LUFS auf.** Das ist der Wert der fertigen Folge, nicht der Aufnahme.
 Wer roh so laut aufnimmt, hat bei einem Lacher keinen Headroom mehr und übersteuert. Die
 Lautheit kommt am Ende durch die Pegelangleichung dazu, nicht am Anfang durch den
 Vorverstärker.
+
+## Woher diese Werte kommen
+
+Die Zahlen auf dieser Seite sind keine Schätzungen. Sie stammen aus einer Messreihe von
+rund zwanzig Versionen desselben Materials, aufgenommen mit Shure MV7 am PodTrak P4next
+und bearbeitet in Ultraschall. Das Protokoll liegt im Repository unter
+`previous_dialog/`, eine Zusammenfassung der belegten Punkte steht unter
+[Messreihen](messreihen.md).
+
+Wo eine Zahl aus einer Spezifikation kommt, steht das in der Spalte „Herkunft". Wo sie
+aus der Messreihe kommt, steht die Version dabei. Beides ist besser als der frühere
+Zustand dieser Seite, in der einige Zeilen Faustwerte ohne Beleg waren — zwei davon lagen
+deutlich daneben und sind inzwischen korrigiert.
 
 ## Zwei Profile
 
@@ -132,3 +166,4 @@ Zielwert ohne Herkunft wird nach drei Monaten nicht mehr hinterfragt, sondern ge
 - [AES TD1004.1.15-10 — Recommendation for Loudness of Audio Streaming and Network File Playback](https://aes2.org/wp-content/uploads/2024/01/AESTD1004_1_15_10.pdf)
 - [Production Advice: Streaming Loudness — AES Recommendations](https://productionadvice.co.uk/td1008/)
 - [Critical Listening Lab: Podcast Loudness Standards — LUFS für Apple Podcasts & Spotify](https://www.criticallisteninglab.com/en/learn/loudness/podcast)
+- Eigene Messreihe, `previous_dialog/DIALOG.md` und `previous_dialog/podcast-cheatsheet.md` im Repository

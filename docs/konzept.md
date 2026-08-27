@@ -87,7 +87,31 @@ Kammfiltereffekte, die als Spektrum-Auffälligkeit im Messergebnis landen und do
 einem Aufnahmefehler aussehen. Diese Entscheidung hat eine Folge für die Lautheit, die
 in den [Zielwerten](zielwerte.md#der-3-db-fehler) steht.
 
+**Plosive werden getrennt gezählt und aus der Peak-Bewertung herausgehalten.** Ein Plosiv
+ist eine Spitze, deren Energieanteil unterhalb von 120 Hz weit über dem des umgebenden
+Sprachblocks liegt. Er trägt nichts zur Verständlichkeit bei und fällt dem Hochpass später
+zum Opfer; ihn als Übersteuerung zu melden, führt zu mehrere Dezibel zu leisen Aufnahmen.
+
+**Kammfilter werden aus der Welch-PSD nachgewiesen, nicht aus Terzbändern.** Die Signatur
+sind Einbrüche in gleichmäßigem Frequenzabstand; Terzbänder mitteln genau die weg.
+
 **Fenster:** gleitendes RMS 200 ms bei 50 % Überlappung, Short-Term-Lautheit 3 s gleitend.
+
+## Die Reihenfolge der Bearbeitungskette
+
+Die Bibliothek wendet nichts an, aber sie empfiehlt in einer festen Reihenfolge, und die
+ist keine Geschmacksfrage:
+
+```
+Aufnahme → Hochpass → Equalizer → Kompressor → Pegelangleichung
+```
+
+Der Hochpass steht ganz vorn, sonst reagiert der Kompressor auf Plosivenergie, die
+anschließend ohnehin entfernt wird — er senkt die Stimme also genau dort ab, wo gar kein
+lautes Sprachsignal vorliegt. Der Kompressor steht hinter dem Equalizer, weil dieser den
+Pegel verändert: Ein vor dem EQ eingestellter Threshold passt danach nicht mehr. Und die
+Lautheit kommt zuletzt, weil die Normalisierung ohne vorherige Kompression wenig bringt —
+die hohen Spitzen stoßen sofort an die Grenze und der Rest bleibt leise.
 
 ## Was gemessen wird und was entschieden bleibt
 
@@ -99,6 +123,19 @@ Diese Entscheidung wird nicht verschwiegen, sondern verlagert: Sie fällt im
 Empfehlungsteil, gegen ein ausdrücklich übergebenes Ziel und mit genannter Zielspanne. Ein
 Messwert bleibt ein Messwert, auch wenn eine Schicht darüber ein Vorschlag daraus
 gerechnet wird.
+
+## Grundlage der Zielwerte
+
+Die Schwellen und Zielwerte dieser Bibliothek stammen aus einer eigenen Messreihe an rund
+zwanzig Versionen desselben Materials, nicht aus übernommenen Faustregeln. Das Protokoll
+liegt unter `previous_dialog/` im Repository, die belegten Punkte stehen unter
+[Messreihen](messreihen.md).
+
+Das hat eine Grenze, die genannt gehört: Alle Zahlen stammen aus **einer** Stimme an
+**einem** Mikrofon. Das reicht, um die Richtungen festzulegen — dass der Threshold unter
+den Median gehört, dass der Höhenabfall an der Achse groß ist und nicht klein. Es reicht
+nicht, um die Schwellen für andere Sprecher zu behaupten. Deshalb stehen sie im
+`TargetProfile` und nicht im Code.
 
 ## Versionierung
 

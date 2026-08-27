@@ -3,6 +3,21 @@
 Diese Seite beschreibt, wie podmetrics gedacht ist zu benutzen. Sie ist die Antwort auf
 „ich habe jetzt Zahlen, und nun?".
 
+## Vor der ersten Messung
+
+podmetrics misst, was die Kette liefert. Vier Dinge entscheiden vorher darüber, ob die
+Messung überhaupt etwas über Deine Stimme aussagt:
+
+- Gerätebearbeitung am P4next aus — AI Noise Reduction, Tone, Comp. Sie ist unwiderruflich
+  und macht jede spätere Messung zur Messung des Geräts.
+- Phantomspeisung aus, die MV7 sind dynamisch.
+- Gain so, dass laute Stellen zwischen −12 und −6 dBFS liegen.
+- Am Ende 30 Sekunden Stille aufnehmen. Das ist der Bereich, den Du später als
+  `--noise` übergibst.
+
+Jede Änderung an Mikrofon, Position, Sprecher oder Sitzhaltung macht die alte
+Gaineinstellung ungültig — und damit auch die alte Referenz.
+
 ## Einmal: einen Maßstab schaffen
 
 Ohne Referenz sagen Zahlen wenig. Der erste Schritt ist deshalb, eine Aufnahme zu
@@ -45,6 +60,13 @@ aufnehmen → messen → eine Empfehlung umsetzen → wieder aufnehmen → messe
 ```
 $ podmetrics advise take_009.wav --reference referenz-kai.json --topic position
 ```
+
+!!! tip "Denselben Abschnitt vergleichen"
+
+    Für Spektralvergleiche lohnt sich `--region`: Verschiedene Sätze haben verschiedene
+    Spektren, und was dann als Positionsbefund erscheint, ist in Wahrheit anderer Inhalt.
+    In der Messreihe wurde durchgängig derselbe Abschnitt von 11,8 bis 15,0 s verglichen.
+    Sprich für Vergleichstakes denselben Satz.
 
 Setze **eine** Empfehlung um, die oberste. Nimm neu auf. Miss wieder.
 

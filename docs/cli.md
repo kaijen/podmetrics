@@ -12,12 +12,17 @@ Kein Docker, kein Server, kein Browser.
 ## Befehle
 
 ```
-podmetrics measure FILE [--noise 12.4:42.4] [--channel 0] [--json]
-podmetrics batch DIR --reference take_002.wav [--csv out.csv]
+podmetrics measure FILE [--noise 12.4:42.4] [--region 11.8:15.0] [--channel 0] [--json]
+podmetrics batch DIR --reference take_002.wav [--region 11.8:15.0] [--csv out.csv]
 podmetrics compare FILE_A FILE_B --reference FILE_A
-podmetrics advise FILE [--reference REF] [--topic position|eq|comp] [--noise 12.4:42.4] [--processed] [--json]
+podmetrics advise FILE [--reference REF] [--topic position|eq|comp] [--noise 12.4:42.4] [--region 11.8:15.0] [--processed] [--json]
 podmetrics check-reference FILE [--noise 12.4:42.4] [--json]
 ```
+
+`--region` schränkt die Auswertung auf einen Zeitabschnitt ein und ist für
+Spektralvergleiche zweier Takes desselben Textes fast immer richtig. `--noise` markiert
+dagegen die Sprechpause, in der der Rauschteppich gemessen wird — zwei verschiedene
+Bereiche für zwei verschiedene Zwecke.
 
 ## batch
 

@@ -104,6 +104,14 @@ Der Rauschteppich wird ausschließlich in einem explizit übergebenen Bereich ge
 
 Terzband-Energien werden auf ihren eigenen Mittelwert normiert, damit sie unabhängig vom Aufnahmegain vergleichbar sind. Aussagekräftig ist die Differenzkurve zur Referenz, nicht die Absolutkurve.
 
+Plosive werden erkannt, gezählt und aus der Peak-Bewertung herausgehalten. Ein Plosiv ist eine Spitze, deren Energieanteil unterhalb von 120 Hz weit über dem des umgebenden Sprachblocks liegt — in der Messreihe 95,6 % gegen 28,7 % im Durchschnitt. Er trägt nichts zur Verständlichkeit bei und fällt dem Hochpass später ohnehin zum Opfer. `Measurement` führt deshalb `peak_dbfs` und `peak_speech_dbfs` nebeneinander: Der erste sagt, ob etwas angeschlagen ist, der zweite ist der Maßstab für den Gain. Wer beides vermengt, nimmt mehrere Dezibel zu leise auf, weil er gegen einen Luftstoß aussteuert.
+
+Kammfilter werden aus der Welch-PSD nachgewiesen und nicht aus Terzbändern. Die Signatur sind Einbrüche in gleichmäßigem Frequenzabstand; die Terzbandmittelung löscht genau die aus. Der Abstand nennt die Verzögerung der störenden Kopie, die Tiefe ihren Pegelabstand. Dieser Fehler war in der Messreihe der teuerste und der einzige, den keine der übrigen Regeln gefunden hätte.
+
+`measure()` nimmt neben `noise_region` einen optionalen `region`-Bereich. Zwei Takes desselben Textes sind nur über denselben Abschnitt spektral vergleichbar — verschiedene Sätze haben verschiedene Spektren, und der Unterschied erscheint sonst als Positionsbefund. Die beiden Bereiche werden nicht verwechselt: `noise_region` ist die Sprechpause, `region` der ausgewertete Sprachabschnitt.
+
+`Measurement` trägt `source_sha256`. Das ist die einzige Take-Identität hier und keine Verwaltung, sondern eine gemessene Eigenschaft der Eingabe. Sie steht drin, weil in der Messreihe aus übereinstimmenden Kennwerten auf dieselbe Datei geschlossen wurde und die Prüfsumme das Gegenteil zeigte. Gleiche Zahlen sind kein Beweis für gleiche Datei.
+
 Fenster: gleitendes RMS 200 ms bei 50 % Überlappung, Short-Term-Lautheit 3 s gleitend.
 
 Der Median-Sprechpegel und die Spanne P10–P90 werden mitgeliefert, weil daraus der Kompressor-Threshold folgt. Die Messmodule schlagen keinen Threshold vor — die Umrechnung hängt von Ratio und Zielspanne ab und ist eine Entscheidung, keine Messung. Die Entscheidung wird nicht verschwiegen, sondern verlagert: Sie fällt im Empfehlungsteil, gegen ein ausdrücklich übergebenes Ziel und mit genannter Zielspanne. Ein Messwert bleibt ein Messwert, auch wenn eine Schicht darüber ein Vorschlag daraus gerechnet wird.
@@ -124,6 +132,8 @@ Eine Änderung pro Runde. Wer Abstand und EQ gleichzeitig ändert, kann die Wirk
 
 Die Reihenfolge steht fest: Position vor EQ vor Kompression vor Pegelangleichung. Was der Abstand zum Mikrofon behebt, wird nicht per Filter repariert. Ein EQ-Vorschlag, der eine ungelöste Positionsempfehlung überdeckt, wird zurückgehalten und durch den Hinweis darauf ersetzt.
 
+Davon zu trennen ist die Reihenfolge der Bearbeitungskette selbst, die in jeder Ausgabe genannt wird: Hochpass vor EQ vor Kompressor vor Pegelangleichung. Der Hochpass steht vorn, weil der Kompressor sonst auf Plosivenergie reagiert, die anschließend entfernt wird — er senkt die Stimme dort ab, wo gar kein lautes Sprachsignal liegt. Der Kompressor steht hinter dem EQ, weil ein vor dem EQ eingestellter Threshold danach nicht mehr passt.
+
 Ohne Bezug keine Empfehlung. Grundlage ist eine Referenzmessung, ein `TargetProfile` oder beides. Aus einer einzelnen Messung ohne Ziel folgt nichts: −18 LUFS sind weder gut noch schlecht, sondern nur eine Zahl.
 
 Empfehlungen sind Hypothesen mit Rangfolge, nicht Diagnosen. Eine dunkle Stimme und ein zu geringer Abstand erzeugen ähnliche Terzbandbilder; Raumhall, Popp-Geräusche und ein schräg stehendes Mikrofon sind aus den vorhandenen Kennwerten nicht sicher auseinanderzuhalten. Wo zwei Ursachen gleich plausibel sind, werden beide genannt, statt eine zu wählen. Der Ton ist „probier das und miss nach“, nicht „dein Mikro steht falsch“.
@@ -138,29 +148,35 @@ Positionsempfehlungen setzen unbearbeitetes Material voraus — den Rohmitschnit
 
 Grundlage sind Terzband-Differenzkurve, Pegelverlauf, P10–P90 und Rauschabstand.
 
-Überschuss bei 100–250 Hz gegen die Referenz deutet auf zu geringen Abstand — der Nahbesprechungseffekt der Richtmikrofone MV7 und MV7X. Vorschlag: Abstand vergrößern, eine Handbreit als Startwert, neu aufnehmen und messen. Abfall oberhalb 6 kHz bei unauffälligem Grundton deutet auf Sprechen an der Achse vorbei; Winkel prüfen. Zu geringer Rauschabstand bei ansonsten passendem Spektrum deutet auf zu großen Abstand mit hochgedrehter Vorverstärkung. Überschuss bei 5–8 kHz deutet auf Zischlaute; das Mikrofon leicht aus der Achse zu drehen ist die erste Maßnahme, ein De-Esser die zweite. Eine große P10–P90-Spanne zusammen mit driftendem Pegelverlauf deutet auf wechselnden Abstand — das ist eine Frage von Haltung und Stativ und wird nicht durch einen Kompressor gelöst, der die Schwankung nur leiser macht.
+Überschuss bei 100–250 Hz gegen die Referenz deutet auf zu geringen Abstand — der Nahbesprechungseffekt der Richtmikrofone MV7 und MV7X. Vorschlag: Abstand vergrößern, eine Handbreit als Startwert, neu aufnehmen und messen. Abfall in 4–8 kHz mit stärkerem Abfall in 8–12 kHz deutet auf Sprechen an der Achse vorbei; Achse auf den Mund richten. Die beiden Bänder werden getrennt ausgewiesen, weil beim Vorbeisprechen zweimal Höhen verloren gehen — an der Richtcharakteristik der Niere und an der eigenen Abstrahlung, denn auch der Mund strahlt oberhalb von 4 kHz gerichtet ab. Deshalb sind die gemessenen Werte groß, 6 bis 13 dB und nicht ein bis zwei. Ein gleichmäßiger Abfall über beide Bänder ist ein anderer Befund und deutet eher auf Abstand oder einen Schaumstoff-Windschutz. Seitlicher Versatz gegen Plosive heißt dabei nicht, die Achse wegzudrehen: Man verschiebt die eigene Position und dreht die Kapsel auf den Mund zurück. Zu geringer Rauschabstand bei ansonsten passendem Spektrum deutet auf zu großen Abstand mit hochgedrehter Vorverstärkung. Überschuss bei 5–8 kHz deutet auf Zischlaute; das Mikrofon leicht aus der Achse zu drehen ist die erste Maßnahme, ein De-Esser die zweite. Eine große P10–P90-Spanne zusammen mit driftendem Pegelverlauf deutet auf wechselnden Abstand — das ist eine Frage von Haltung und Stativ und wird nicht durch einen Kompressor gelöst, der die Schwankung nur leiser macht.
 
-Zu Popp-Geräuschen und Raumreflexionen wird nichts empfohlen, solange es dafür keine eigenen Kennwerte gibt — tieffrequente Transienten und eine Nachhallschätzung. Beides ist aus Terzbändern und Pegelstatistik nicht sicher von anderen Ursachen zu trennen. Eine geratene Ursache kostet mehr Zeit als keine Aussage.
+Zu Raumreflexionen wird nichts empfohlen, solange es dafür keine Nachhallschätzung gibt. Aus Terzbändern und Pegelstatistik ist Hall nicht sicher von anderen Ursachen zu trennen, und eine geratene Ursache kostet mehr Zeit als keine Aussage. Popp-Geräusche standen früher unter demselben Vorbehalt; sie stehen jetzt in den Regeln, weil die Messreihe ein Kriterium geliefert hat.
 
 ### EQ
 
 Grundlage ist die Terzband-Differenzkurve gegen die Referenz.
 
-Vorgeschlagen werden höchstens drei breite Glocken und ein Hochpass. Keine schmalen Kerben: Eine Terzband-Auflösung gibt schmalbandige Korrekturen nicht her, und was in einer gemittelten Kurve als Spitze erscheint, ist oft ein einzelner Vokal. Die Filter werden mit Abstand zueinander gewählt, weil sich überlappende Glocken in ihrer Wirkung addieren und die gerechneten Gains dann nicht mehr stimmen. Grenze ist der Wert aus dem `TargetProfile`, voreingestellt ±4 dB je Filter; wo mehr nötig wäre, ist die Ursache keine Frage des EQ, und die Ausgabe sagt das statt größer zu korrigieren.
+Vorgeschlagen werden höchstens vier breite Glocken und ein Hochpass. Keine schmalen Kerben: Eine Terzband-Auflösung gibt schmalbandige Korrekturen nicht her, und was in einer gemittelten Kurve als Spitze erscheint, ist oft ein einzelner Vokal. Die Filter werden mit Abstand zueinander gewählt, weil sich überlappende Glocken in ihrer Wirkung addieren und die gerechneten Gains dann nicht mehr stimmen. Grenze ist der Wert aus dem `TargetProfile`, voreingestellt ±4 dB je Filter; wo mehr nötig wäre, ist die Ursache keine Frage des EQ, und die Ausgabe sagt das statt größer zu korrigieren.
 
 Der Hochpass wird aus dem gemessenen Energieanteil unterhalb der Sprechgrundfrequenz vorgeschlagen, nicht pauschal gesetzt. Eine tiefe Stimme verliert bei 100 Hz Fundament, das nicht wiederkommt.
 
 Die Referenz für EQ-Empfehlungen muss ein eigener Take sein. Eine Differenzkurve gegen eine fremde Stimme ist kein Korrekturziel — wer danach filtert, egalisiert seine eigene Stimme weg und hört am Ende wie eine schlechte Kopie des Vorbilds. Die Bibliothek kann das nicht prüfen; der Hinweis steht bei jeder EQ-Ausgabe.
 
-Ausgegeben werden Filtertyp, Frequenz, Gain und Q — direkt in ReaEQ eintragbar.
+Ausgegeben werden Filtertyp, Frequenz, Gain und Bandbreite in Oktaven — so, wie ReaEQ sie entgegennimmt. Nicht Q: Die Umrechnung wäre eine Fehlerquelle an einer Stelle, an der der Nutzer Zahlen abtippt.
+
+Jeder EQ-Vorschlag nennt den erwarteten Zuwachs des Spitzenpegels und den Ausgangspegel, der ihn ausgleicht. Ohne diese Angabe wird er nicht ausgegeben. In der Messreihe clippte Version 007 an 54 Samples, weil der Ausgangs-Gain nach einer Anhebung nicht nachgezogen war — das ist kein Randfall, sondern die Regel bei jeder Anhebung.
 
 ### Kompression
 
 Grundlage sind Median-Sprechpegel, P10–P90, Crest sowie Peak und True Peak.
 
-Threshold folgt aus dem Median-Sprechpegel, Ratio aus dem Verhältnis der gemessenen Spanne zur Zielspanne des Profils. Beides sind Rechnungen, und beide nennen ihre Eingangswerte in der Ausgabe.
+Threshold liegt rund 3 dB unter dem Median-Sprechpegel; der Abstand steht als `comp_threshold_below_median_db` im Profil. Die Richtung ist der eigentliche Inhalt der Regel und nicht der Zahlenwert: Ein Threshold oberhalb des Medians lässt den Kompressor nur die obere Hälfte der Sprache sehen. In der Messreihe bewegte sich zwischen −16 und −20 deshalb fast nichts, obwohl die Kette in Ordnung war — der Median lag bei −21, der brauchbare Threshold bei −24. Der Threshold ist außerdem der einzige Wert, der bei jeder neuen Aufnahme neu zu prüfen ist, weil er absolut ist und vom Aufnahmepegel abhängt.
 
-Attack und Release werden nicht gerechnet, sondern aus dem Profil übernommen. Sie folgen aus Sprechtempo und Geschmack, nicht aus Kennwerten. Genau das steht dabei, damit niemand sie für ein Messergebnis hält.
+Ratio folgt aus dem Verhältnis der gemessenen Spanne zur Zielspanne des Profils, 3:1 ist der belegte Startwert. Der Wet-Anteil gehört zum Vorschlag: Die Messreihe kam über Wet ans Ziel und nicht über eine höhere Ratio, weil parallele Kompression die Betonung erhält, die eine hohe Ratio wegnimmt. Alle drei nennen ihre Eingangswerte in der Ausgabe.
+
+Der Rauschteppich ist der verlässlichste Kontrollwert für zu starke Kompression, zuverlässiger als das Gehör: Stärkere Kompression klingt zunächst voller, der Preis fällt erst in den Pausen auf. Steigt er über −48 dB, war der Eingriff zu stark. In der Messreihe war Version 012 genau daran unbrauchbar — Lautheit und Dynamikspanne stimmten, der Rauschteppich stand bei −32,5 dB.
+
+Attack und Release werden nicht gerechnet, sondern aus dem Profil übernommen: 8 ms und 100 bis 120 ms. Sie folgen aus Sprechtempo und Geschmack, nicht aus Kennwerten. Genau das steht dabei, damit niemand sie für ein Messergebnis hält.
 
 Der Makeup-Gain ist ein Startwert, kein Ergebnis. Kompression ändert die Lautheit, also stimmt der aus der unkomprimierten Messung gerechnete Wert nach dem Rendern nicht mehr. Die Empfehlung sagt ausdrücklich, dass erneut zu messen und `gain_for_target_lufs()` auf das Rendering anzuwenden ist. Die Schleife rendern → messen → nachziehen ist der Normalfall und kein Zeichen eines Fehlers.
 
@@ -222,7 +238,7 @@ SemVer für das Paket. `Measurement.schema_version` wird getrennt geführt und e
 
 `Advice.ruleset_version` wird getrennt geführt und erhöht, sobald sich Regeln, Schwellen oder die Bedeutung einer Suggestion-ID ändern. Eine ID wird nie wiederverwendet: Verschwindet eine Regel, bleibt ihre ID verbraucht, damit alte gespeicherte Empfehlungen nicht plötzlich etwas anderes bedeuten.
 
-Geänderte Defaults in `TargetProfile` sind keine Breaking Changes — alte Messungen bleiben gültig —, aber sie ändern Empfehlungen ohne sichtbaren Anlass und gehören deshalb mit Begründung ins Changelog.
+Geänderte Defaults in `TargetProfile` sind keine Breaking Changes — alte Messungen bleiben gültig —, aber sie ändern Empfehlungen ohne sichtbaren Anlass und gehören deshalb mit Begründung ins Changelog. Wo ein Default aus der Messreihe stammt, wird die Version genannt, gegen die er belegt ist.
 
 ## Dokumentation
 
@@ -231,6 +247,8 @@ Konzept, API-Entwurf, Zielwerte und Arbeitsweise stehen als mkdocs-Seiten in `do
 CLAUDE.md und die Dokumentation überschneiden sich absichtlich, aber sie haben verschiedene Leser. Hier stehen Entscheidungen und ihre Begründung für den, der am Paket arbeitet. Dort steht, wie man es benutzt. Ändert sich eine Festlegung, wird sie an beiden Stellen nachgezogen — eine Dokumentationsseite, die einer Regel hier widerspricht, ist ein Fehler und kein zweiter Standpunkt.
 
 Die Dokumentationsabhängigkeiten stehen in `docs/requirements.txt` und nicht in `pyproject.toml`. Wer podmetrics benutzt, soll dafür keinen Dokumentationsgenerator installieren müssen.
+
+Unter `previous_dialog/` liegt das Protokoll der Messreihe, aus der die Zielwerte und die meisten Schwellen stammen. Es ist Quellenmaterial und keine Dokumentationsseite; ausgewertet ist es unter „Messreihen". Wer eine Schwelle ändert, prüft dort, ob sie belegt war. Die Grenze dieser Grundlage gehört mitgenannt: Alle Zahlen stammen aus einer Stimme an einem Mikrofon. Das legt die Richtungen fest, nicht die Schwellen für andere Sprecher — und ist der Grund, warum sie im `TargetProfile` stehen und nicht im Code.
 
 ## Tests
 

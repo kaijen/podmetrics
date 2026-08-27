@@ -46,6 +46,7 @@ def measure(
     *,
     params: AnalysisParams = AnalysisParams(),
     noise_region: tuple[float, float] | None = None,
+    region: tuple[float, float] | None = None,
 ) -> Measurement
 ```
 
@@ -57,8 +58,16 @@ keine DSP-Logik.
 Ohne diese Angabe bleibt `noise_floor_dbfs` leer. Die Bibliothek sucht sich keine Pause
 selbst.
 
-Das zurückgegebene `Measurement` enthält die verwendeten `AnalysisParams`. Die Parameter
-reisen mit dem Ergebnis, weil eine Messung ohne ihre Parameter nicht reproduzierbar ist.
+`region` schränkt die Auswertung auf einen Zeitabschnitt ein. Für den Spektralvergleich
+zweier Takes desselben Textes ist das der Unterschied zwischen einer belastbaren und einer
+zufälligen Differenzkurve: Verschiedene Sätze haben verschiedene Spektren, und was dann als
+Positionsbefund erscheint, ist in Wahrheit anderer Inhalt. In der Messreihe wurde
+durchgängig derselbe Abschnitt 11,8–15,0 s verglichen. Ohne Angabe wird das ganze Signal
+ausgewertet.
+
+Das zurückgegebene `Measurement` enthält die verwendeten `AnalysisParams` sowie beide
+Bereiche. Die Voraussetzungen reisen mit dem Ergebnis, weil eine Messung ohne sie nicht
+reproduzierbar ist.
 
 ## compare
 

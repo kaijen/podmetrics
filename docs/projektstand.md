@@ -6,7 +6,9 @@ Stand: August 2026.
 
 - Konzept, Abgrenzung und Schichtung — festgelegt
 - Entwurf der öffentlichen API — festgelegt, aber noch nicht erprobt
-- Zielwerte für Rohaufnahme und Veröffentlichung — festgelegt
+- Zielwerte für Rohaufnahme und Veröffentlichung — aus einer eigenen Messreihe belegt
+- Das Protokoll dieser Messreihe unter `previous_dialog/`, ausgewertet unter
+  [Messreihen](messreihen.md)
 - Diese Dokumentation
 
 ## Was nicht existiert
@@ -22,7 +24,8 @@ oben:
 
 1. `models` — die Dataclasses, mit Roundtrip-Tests für `to_dict()` und `from_dict()`
 2. `io` — laden, Kanalwahl, Resampling
-3. `levels` und `gating` — Peak, True Peak, Crest, RMS-Perzentile, Sprachsegmente
+3. `levels` und `gating` — Peak, True Peak, Crest, RMS-Perzentile, Sprachsegmente,
+   Plosiverkennung
 4. `loudness` — LUFS-I, Short-Term, `gain_for_target_lufs()`
 5. `spectrum` — Welch-PSD, Terzbänder
 6. `report.measure()` — der Zusammenbau
@@ -52,15 +55,25 @@ im Test sichtbar, statt sie im Code zu verstecken.
 Ein Test stellt sicher, dass `measure` und `batch` keine Empfehlungen ausgeben. Diese
 Trennung geht sonst als bequeme Kleinigkeit verloren.
 
-**Keine echten Audiodateien im Repository.**
+Für die Regeln, die aus der Messreihe stammen, ist der Test bereits geschrieben, bevor der
+Code existiert: Die dort protokollierten Werte sind die Fixtures. Ein `Measurement` mit
+Median −21 dBFS muss `comp.threshold` mit −24 vorschlagen; eine Terzband-Differenzkurve mit
+−5,8 dB bei 4–8 kHz und −8,6 dB bei 8–12 kHz muss `position.off_axis` auslösen und nicht
+`position.distance_excess`.
+
+**Keine echten Audiodateien im Repository.** Die WAV-Dateien der Messreihe bleiben
+außerhalb; was von ihnen gebraucht wird, sind die Messwerte, und die stehen im
+Protokoll.
 
 ## Offene Entscheidungen
 
 | Frage | Stand |
 | --- | --- |
-| Genaue Formel für Threshold und Ratio aus Median und Zielspanne | offen — an echtem Material durchzurechnen, bevor sie festgeschrieben wird |
-| Kennwert für tieffrequente Transienten (Popp-Geräusche) | zurückgestellt, bis der Rest steht |
+| Formel für Threshold und Ratio | **geschlossen.** Threshold = Median − 3 dB, Ratio 3:1 als Startwert, belegt durch die [Messreihe](messreihen.md#der-denkfehler-der-die-formel-festlegt) |
+| Kennwert für Plosive | **geschlossen.** Tieftonanteil der Spitze gegen den Blockdurchschnitt |
+| Kammfilter-Nachweis | **festgelegt**, noch nicht erprobt: Periodizität der Einbrüche in der Welch-PSD |
 | Nachhallschätzung | zurückgestellt; unsicher, ob robust genug machbar |
+| Tragen die Schwellen für eine zweite Stimme? | offen — alle Zahlen stammen aus einer Stimme an einem Mikrofon |
 | `.RfxChain`-Export für Ultraschall | bewusst nicht — würde REAPER-Versionen ins Paket holen |
 
 ## Diese Dokumentation

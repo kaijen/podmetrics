@@ -38,6 +38,7 @@ Repository. Beide sind gleichrangig. Weil die Bibliothek von außen benutzt wird
 | wie aus Messwerten Ratschläge werden | [Empfehlungen](api/empfehlungen.md) |
 | wie sich das am Terminal anfühlt | [CLI](cli.md) |
 | wie eine Aufnahmesitzung praktisch abläuft | [Arbeitsweise](arbeitsweise.md) |
+| woher die Schwellen kommen und was sie belegt | [Messreihen](messreihen.md) |
 
 ## Beispiel
 
